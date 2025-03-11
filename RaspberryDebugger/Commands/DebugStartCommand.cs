@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // FILE:	    DebugStartCommand.cs
 // CONTRIBUTOR: Jeff Lill
 // COPYRIGHT:   Copyright (c) 2021 by neonFORGE, LLC.  All rights reserved.
@@ -176,6 +176,8 @@ namespace RaspberryDebugger.Commands
 
                 await NeonHelper.WaitForAsync(async () =>
                     {
+                            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                         // The developer must have stopped debugging before the 
                         // ASPNET application was able to begin servicing requests.
                         if (dte.Mode != vsIDEMode.vsIDEModeDebug) return true;

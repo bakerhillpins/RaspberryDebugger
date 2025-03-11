@@ -135,7 +135,12 @@ namespace RaspberryDebugger
         {
             if (Instance == null || _debugPane == null) return; // Logging hasn't been initialized yet.
 
-            _debugPane.Clear();
+            _ = Instance.JoinableTaskFactory.RunAsync(
+                async () =>
+                {
+                    await Instance.JoinableTaskFactory.SwitchToMainThreadAsync( Instance.DisposalToken );
+                    _debugPane.Clear();
+                } );
         }
 
         //---------------------------------------------------------------------
@@ -211,11 +216,6 @@ namespace RaspberryDebugger
         // DEBUG Command interceptors
 
         /// <summary>
-        /// Returns <c>true</c> if the IDE in debug mode.
-        /// </summary>
-        private bool IsDebugging => dte.Mode == vsIDEMode.vsIDEModeDebug;
-
-        /// <summary>
         /// Executes a command by command set GUID and command ID.
         /// </summary>
         /// <param name="commandSet">The command set GUID.</param>
@@ -282,7 +282,7 @@ namespace RaspberryDebugger
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (IsDebugging)
+            if ( dte.Mode == vsIDEMode.vsIDEModeDebug)
             {
                 return;
             }
