@@ -174,38 +174,53 @@ namespace RaspberryDebugger.Commands
                 var launchReady = false;
                 var foundWebServer = WebServer.None;
 
-                await NeonHelper.WaitForAsync(async () =>
-                    {
+                try
+                {
+                    await NeonHelper.WaitForAsync( async () =>
+                        {
                             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                        // The developer must have stopped debugging before the 
-                        // ASPNET application was able to begin servicing requests.
-                        if (dte.Mode != vsIDEMode.vsIDEModeDebug) return true;
+                            // The developer must have stopped debugging before the 
+                            // ASPNET application was able to begin servicing requests.
+                            if ( dte.Mode != vsIDEMode.vsIDEModeDebug ) return true;
 
-                        using (new CursorWait())
-                        {
-                            try
+                            using ( new CursorWait() )
                             {
-                                var (found, webServer) =
-                                    await SearchForRunningWebServerAsync(projectProperties, projectSettings, connection);
+                                try
+                                {
+                                    var (found, webServer) =
+                                        await SearchForRunningWebServerAsync( projectProperties, projectSettings,
+                                            connection );
 
-                                // web server not found
-                                if (!found) return false;
+                                    // web server not found
+                                    if ( !found ) return false;
 
-                                // take the found web server
-                                foundWebServer = webServer;
-                                launchReady = true;
+                                    // take the found web server
+                                    foundWebServer = webServer;
+                                    launchReady = true;
 
-                                return true;
+                                    return true;
+                                }
+                                catch
+                                {
+                                    return false;
+                                }
                             }
-                            catch
-                            {
-                                return false;
-                            }
-                        }
-                    },
-                    timeout: TimeSpan.FromSeconds(60),
-                    pollInterval: TimeSpan.FromSeconds(0.5));
+                        },
+                        timeout: TimeSpan.FromSeconds( 60 ),
+                        pollInterval: TimeSpan.FromSeconds( 0.5 ) );
+                }
+                catch ( TimeoutException )
+                {
+                    //DialogResult result = Dialogs.MessageBoxEx.Show(
+                    //    "Raspberry Web Server not found. Start web browser anyway?",
+                    //    "Raspberry Web Server",
+                    //    MessageBoxButtons.YesNo,
+                    //    MessageBoxIcon.Exclamation,
+                    //    MessageBoxDefaultButton.Button1);
+
+                    //launchReady = result == DialogResult.Ignore;
+                }
 
                 if (!launchReady) return;
 
