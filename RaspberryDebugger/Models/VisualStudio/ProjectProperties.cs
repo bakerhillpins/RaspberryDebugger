@@ -248,18 +248,18 @@ namespace RaspberryDebugger.Models.VisualStudio
             // The bitness is not important for this - we need only the SDK version
             var isSupportedSdkVersion = netVersion.Major == 3 || netVersion.Major >= 6;
 
-            // Determine whether the project is Raspberry compatible.
-            var isRaspberryCompatible = isNetCore &&
-                                        outputType == 1 && // 1=EXE
-                                        isSupportedSdkVersion;
-
             var platformTarget = (string)project.ConfigurationManager.ActiveConfiguration.Properties
                                                 .Item( "PlatformTarget" ).Value;
 
-            // For the time being make linux-arm64 the default.
+
+            // Determine whether the project is Raspberry compatible.
+            var isRaspberryCompatible = isNetCore &&
+                                        outputType == 1 && // 1=EXE
+                                        isSupportedSdkVersion &&
+                                        platformTarget.Contains( "arm" );
+
             // <RuntimeIdentifier>linux-arm64</RuntimeIdentifier>
-            //var runtime = string.IsNullOrEmpty( platformTarget ) ? platformTarget : $"linux-{platformTarget}";
-            var runtime = string.IsNullOrEmpty(platformTarget) ? "linux-arm64" : $"linux-{platformTarget}";
+            var runtime = string.IsNullOrEmpty( platformTarget ) ? platformTarget : $"linux-{platformTarget}";
 
             // We need to jump through some hoops to obtain the project GUID.
             var solutionService = RaspberryDebuggerPackage.Instance.SolutionService;
