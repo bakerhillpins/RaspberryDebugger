@@ -1,0 +1,99 @@
+name: CI-CD
+
+# Concurrency control ensures that only one instance of the workflow runs at a time for a given reference.
+# This prevents multiple runs from interfering with each other.
+# Reference: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push: 
+    branches:
+        - main
+        - development 
+    
+  pull_request:
+    branches:
+        - main
+        - development 
+
+  # To allow manual execution
+  workflow_dispatch:
+    
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: ./src/RaspberryDebugger.sln
+
+  PROJECT_FILE_PATH: ./src/RaspberryDebugger/RaspberryDebugger.csproj
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_PLATFORM: 'Any CPU'
+  BUILD_PLATFORM_FOR_PROJECTS: 'AnyCPU'
+
+permissions:
+  contents: read
+
+jobs:
+  # build_Linux:
+  build_Windows:
+    runs-on: [windows-2022]
+
+    strategy:
+      matrix:
+        configuration: [Release]
+        platform: [Any CPU]
+    
+    steps:
+    - name: 🤖 Checkout code
+      uses: actions/checkout@v4
+      with:
+        path: './src'
+        # Fetch depth needs to be set to 0 to use Nerdbank.GitVersioning
+        fetch-depth: 0
+
+    - name: 🤖 Checkout NeonSDK
+      uses: actions/checkout@v4
+      with:
+        repository: bakerhillpins/neonSDK
+        path: './neonSDK'
+        ref: refs/heads/Fix_Issue#94
+        
+    # Install the .NET Core workload
+    - name: 🤖 Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+          global-json-file: ./src/global.json
+      env:
+          DOTNET_INSTALL_DIR: "${{ runner.temp }}\\dotnet"
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+      
+    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    - name: Restore the application
+      run: >
+          msbuild 
+          "${{ env.SOLUTION_FILE_PATH }}"
+          -verbosity:minimal
+          /t:Restore
+          /p:Configuration="${{ env.Configuration }}"
+
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    # Create the app package by building and packaging the Windows Application Packaging project
+    - name: Create the app package
+      run: >
+          msbuild
+          -verbosity:minimal
+          "${{ env.SOLUTION_FILE_PATH }}"
+          /p:Configuration="${{ env.Configuration }}" 
+
+      env:
+        Configuration: ${{ matrix.configuration }}
+
