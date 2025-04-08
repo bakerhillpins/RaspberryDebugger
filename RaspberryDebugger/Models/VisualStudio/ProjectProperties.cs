@@ -31,6 +31,15 @@ using System.Text.RegularExpressions;
 namespace RaspberryDebugger.Models.VisualStudio
 {
     /// <summary>
+    /// Determined through experimentation.
+    /// </summary>
+    enum DotNetFrameworks
+    {
+        DotNet_8  = 524288,
+        DotNet_9 = 589824,
+    }
+
+    /// <summary>
     /// The Visual Studio <see cref="Project"/> class properties can only be
     /// accessed from the UI thread, so we'll use this class to capture the
     /// properties we need on a UI thread so we can use them later on other
@@ -89,16 +98,19 @@ namespace RaspberryDebugger.Models.VisualStudio
             var projectFolder = Path.GetDirectoryName(project.FullName);
 
             // Read the properties we care about from the project.
-            var targetFrameworkMonikers = (string)project.Properties.Item("TargetFrameworkMoniker").Value;
+            var targetFrameworkMonikers = (string)project.Properties.Item("TargetFrameworkMonikers").Value;
+            var targetFrameworkMoniker = (string)project.Properties.Item("TargetFrameworkMoniker").Value;
             var outputType = (int)project.Properties.Item("OutputType").Value;
 
-            var monikers = targetFrameworkMonikers.Split(',');
+            var targetFramework = (DotNetFrameworks)((int)project.Properties.Item("TargetFramework").Value);
 
-            var isNetCore = monikers[0] == ".NETCoreApp";
+            var moniker = targetFrameworkMoniker.Split(',');
+
+            var isNetCore = moniker[0] == ".NETCoreApp";
 
             // Extract the version from the moniker.  This looks like: "Version=v5.0"
             var versionRegex = new Regex(@"(?<version>[0-9\.]+)$");
-            var netVersion = SemanticVersion.Parse(versionRegex.Match(monikers[1]).Groups["version"].Value);
+            var netVersion = SemanticVersion.Parse(versionRegex.Match(moniker[1]).Groups["version"].Value);
             
             // Load [Properties/launchSettings.json] if present to obtain the command line
             // arguments and environment variables as well as the target connection.  Note
@@ -275,6 +287,7 @@ namespace RaspberryDebugger.Models.VisualStudio
                 Guid                  = projectGuid,
                 Configuration         = project.ConfigurationManager.ActiveConfiguration.ConfigurationName,
                 IsNetCore             = isNetCore,
+                Framework             = targetFramework,
                 SdkVersion            = new Version( netVersion.Major, netVersion.Minor),
                 OutputFolder          = Path.Combine(projectFolder, project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString()),
                 OutputFileName        = (string)project.Properties.Item("OutputFileName").Value,
@@ -473,7 +486,7 @@ namespace RaspberryDebugger.Models.VisualStudio
         /// <summary>
         /// Returns the framework version.
         /// </summary>
-        public string Framework => null;
+        public DotNetFrameworks? Framework { get; set; } = null;
 
         /// <summary>
         /// Returns the publication folder.
