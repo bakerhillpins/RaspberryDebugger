@@ -48,14 +48,14 @@ jobs:
         platform: [Any CPU]
     
     steps:
-    - name: 🤖 Checkout code
+    - name: 📂 Checkout code
       uses: actions/checkout@v4
       with:
         path: './src'
         # Fetch depth needs to be set to 0 to use Nerdbank.GitVersioning
         fetch-depth: 0
 
-    - name: 🤖 Checkout NeonSDK
+    - name: 📂 Checkout NeonSDK
       uses: actions/checkout@v4
       with:
         repository: bakerhillpins/neonSDK
@@ -71,11 +71,11 @@ jobs:
           DOTNET_INSTALL_DIR: "${{ runner.temp }}\\dotnet"
 
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
+    - name: 🤖 Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v2
       
     # Restore the application to populate the obj folder with RuntimeIdentifiers
-    - name: Restore the application
+    - name: ⚙️ Restore the application
       run: >
           msbuild 
           "${{ env.SOLUTION_FILE_PATH }}"
@@ -87,12 +87,21 @@ jobs:
         Configuration: ${{ matrix.configuration }}
 
     # Create the app package by building and packaging the Windows Application Packaging project
-    - name: Create the app package
+    - name: 🤖 Create the app package
       run: >
           msbuild
           -verbosity:minimal
           "${{ env.SOLUTION_FILE_PATH }}"
           /p:Configuration="${{ env.Configuration }}" 
+
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    - name: 📤 Store Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: RaspberryDebugger.vsix
+        path: ./src/RaspberryDebugger/bin/${{ env.Configuration }}/RaspberryDebugger.vsix
 
       env:
         Configuration: ${{ matrix.configuration }}
