@@ -148,6 +148,13 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.13.40008" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.25" Condition="!Exists('packages.config')">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115" Condition="!Exists('packages.config')">
+        <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <!--<PackageReference Include="Neon.Common">
       <Version>4.0.12</Version>
     </PackageReference>
@@ -229,9 +236,9 @@
       </Task>
   </UsingTask>
 
-  <Target Name="SetVersion" BeforeTargets="BeforeBuild">
+  <Target Name="SetVersion" AfterTargets="GetBuildVersion">
       <PropertyGroup>
-          <VsixVersion>3.3.$(Year)$(DayOfYear).$(Time)</VsixVersion>
+          <VsixVersion>$(BuildVersion)</VsixVersion>
       </PropertyGroup>
 
       <ItemGroup>
@@ -245,11 +252,6 @@
           Version="$(VsixVersion)" />
   </Target>
 
-  <PropertyGroup>
-      <Year>$([System.DateTime]::Now.Year)</Year>
-      <DayOfYear>$([System.DateTime]::Now.DayOfYear)</DayOfYear>
-      <Time>$([System.DateTime]::Now.ToString("HHmm"))</Time>
-  </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
