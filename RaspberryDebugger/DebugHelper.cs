@@ -410,37 +410,36 @@ namespace RaspberryDebugger
 
             try
             {
-                if (!string.IsNullOrEmpty(projectProperties?.Framework))
+                var options = new List<object>()
                 {
-                    response = await NeonHelper.ExecuteCaptureAsync(
-                        "dotnet",
-                        new object[]
-                        {
-                        "publish",
-                        "--configuration", projectProperties.Configuration,
-                        "--framework", projectProperties.Framework,
-                        "--runtime", projectProperties.Runtime,
-                        "--no-self-contained",
-                        "--output", projectProperties.PublishFolder,
-                        projectProperties.FullPath
-                        },
-                        environmentVariables: environmentVariables).ConfigureAwait(false);
-                }
-                else
+                    "publish",
+                    "--configuration", projectProperties.Configuration
+                };
+
+                if ( (bool)( projectProperties?.Framework.HasValue ) )
                 {
-                    response = await NeonHelper.ExecuteCaptureAsync(
-                        "dotnet",
-                        new object[]
-                        {
-                        "publish",
-                        "--configuration", projectProperties?.Configuration,
-                        "--runtime", projectProperties?.Runtime,
-                        "--no-self-contained",
-                        "--output", projectProperties?.PublishFolder,
-                        projectProperties?.FullPath
-                        },
-                        environmentVariables: environmentVariables).ConfigureAwait(false);
+                    options.AddRange(
+                        [
+                            "--framework", projectProperties.Framework == DotNetFrameworks.DotNet_8
+                                ? "net8.0"
+                                : "net9.0", // short term hack
+                        ]);
                 }
+
+                options.AddRange( [
+                    "--runtime", projectProperties.Runtime,
+                    "--no-self-contained",
+                    "--output", projectProperties.PublishFolder,
+                    projectProperties.FullPath
+                ] );
+
+                Log.Info("dotnet Command:");
+                Log.WriteLine( string.Join(" ", options.Select( p => p.ToString() ).ToArray()));
+
+                response = await NeonHelper.ExecuteCaptureAsync(
+                    "dotnet",
+                    options.ToArray(),
+                    environmentVariables: environmentVariables).ConfigureAwait(false);
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
