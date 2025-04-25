@@ -130,6 +130,7 @@ namespace RaspberryDebugger.Models.VisualStudio
             //              ASPNETCORE_SERVER.URLS=http://0.0.0.0:<port>
 
             var launchSettingsPath    = Path.Combine(projectFolder ?? string.Empty, "Properties", "launchSettings.json");
+            var activeDebugProfile = (string)project.Properties.Item("ActiveDebugProfile").Value;
             var commandLineArgs       = new List<string>();
             var environmentVariables  = new Dictionary<string, string>();
             var isAspNet              = false;
@@ -146,7 +147,7 @@ namespace RaspberryDebugger.Models.VisualStudio
                 {
                     foreach (var profile in ((JObject)profiles.Value).Properties())
                     {
-                        if (profile.Name == project.Name)
+                        if (profile.Name == activeDebugProfile)
                         {
                             var profileObject = (JObject)profile.Value;
                             var environmentVariablesObject = (JObject)profileObject.Property("environmentVariables")?.Value;
@@ -263,7 +264,6 @@ namespace RaspberryDebugger.Models.VisualStudio
             var platformTarget = (string)project.ConfigurationManager.ActiveConfiguration.Properties
                                                 .Item( "PlatformTarget" ).Value;
 
-
             // Determine whether the project is Raspberry compatible.
             var isRaspberryCompatible = isNetCore &&
                                         outputType == 1 && // 1=EXE
@@ -286,6 +286,7 @@ namespace RaspberryDebugger.Models.VisualStudio
                 FullPath              = project.FullName,
                 Guid                  = projectGuid,
                 Configuration         = project.ConfigurationManager.ActiveConfiguration.ConfigurationName,
+                ActiveDebugProfile    = activeDebugProfile,
                 IsNetCore             = isNetCore,
                 Framework             = targetFramework,
                 SdkVersion            = new Version( netVersion.Major, netVersion.Minor),
@@ -466,6 +467,11 @@ namespace RaspberryDebugger.Models.VisualStudio
         /// Returns the project's build configuration.
         /// </summary>
         public string Configuration { get; private set; }
+
+        /// <summary>
+        /// Returns the Selected Debug profile. 
+        /// </summary>
+        public string ActiveDebugProfile { get; private set; }
 
         /// <summary>
         /// Returns the fully qualified path to the project's output directory.
