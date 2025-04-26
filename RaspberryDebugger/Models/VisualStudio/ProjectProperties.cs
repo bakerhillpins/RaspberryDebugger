@@ -72,30 +72,31 @@ namespace RaspberryDebugger.Models.VisualStudio
 
                 return new ProjectProperties()
                 {
-                    Name                  = project?.Name,
-                    FullPath              = project?.FullName,
-                    Configuration         = null,
-                    IsNetCore             = false,
-                    SdkVersion            = null,
-                    OutputFolder          = null,
-                    OutputFileName        = null,
-                    IsExecutable          = false,
-                    Runtime               = string.Empty,
-                    AssemblyName          = null,
-                    DebugEnabled          = false,
-                    DebugConnectionName   = null,
-                    CommandLineArgs       = new List<string>(),
-                    EnvironmentVariables  = new Dictionary<string, string>(),
+                    Name = project?.Name,
+                    FullPath = project?.FullName,
+                    OutputPath = string.Empty,
+                    ConfigurationName = null,
+                    Guid = Guid.Empty,
+                    IsNetCore = false,
+                    SdkVersion = null,
+                    OutputFileName = null,
+                    IsExecutable = false,
+                    RuntimeIdentifier = string.Empty,
+                    AssemblyName = null,
+                    DebugEnabled = false,
+                    DebugConnectionName = null,
+                    CommandLineArgs = new List<string>(),
+                    EnvironmentVariables = new Dictionary<string, string>(),
                     IsSupportedSdkVersion = false,
                     IsRaspberryCompatible = false,
-                    IsAspNet              = false,
-                    AspPort               = 0,
-                    AspLaunchBrowser      = false,
-                    AspRelativeBrowserUri = null
+                    IsAspNet = false,
+                    AspPort = 0,
+                    AspLaunchBrowser = false,
+                    AspRelativeBrowserUri = null,
                 };
             }
 
-            var projectFolder = Path.GetDirectoryName(project.FullName);
+            string fullPath = project.Properties.Item("FullPath").Value.ToString();
 
             // Read the properties we care about from the project.
             var targetFrameworkMonikers = (string)project.Properties.Item("TargetFrameworkMonikers").Value;
@@ -129,8 +130,8 @@ namespace RaspberryDebugger.Models.VisualStudio
             //
             //              ASPNETCORE_SERVER.URLS=http://0.0.0.0:<port>
 
-            var launchSettingsPath    = Path.Combine(projectFolder ?? string.Empty, "Properties", "launchSettings.json");
-            var activeDebugProfile = (string)project.Properties.Item("ActiveDebugProfile").Value;
+            var launchSettingsPath    = Path.Combine(fullPath ?? string.Empty, @"Properties/launchSettings.json");
+            var activeDebugProfile    = project.Properties.Item("ActiveDebugProfile").Value.ToString();
             var commandLineArgs       = new List<string>();
             var environmentVariables  = new Dictionary<string, string>();
             var isAspNet              = false;
@@ -271,7 +272,7 @@ namespace RaspberryDebugger.Models.VisualStudio
                                         platformTarget.Contains( "arm" );
 
             // <RuntimeIdentifier>linux-arm64</RuntimeIdentifier>
-            var runtime = string.IsNullOrEmpty( platformTarget ) ? platformTarget : $"linux-{platformTarget}";
+            var runtimeIdentifier = string.IsNullOrEmpty( platformTarget ) ? platformTarget : $"linux-{platformTarget}";
 
             // We need to jump through some hoops to obtain the project GUID.
             var solutionService = RaspberryDebuggerPackage.Instance.SolutionService;
@@ -283,17 +284,18 @@ namespace RaspberryDebugger.Models.VisualStudio
             return new ProjectProperties()
             {
                 Name                  = project.Name,
-                FullPath              = project.FullName,
+                FullPath              = fullPath,
+                OutputPath            = project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString(),
+                OutputFileName        = project.Properties.Item("OutputFileName").Value.ToString(),
                 Guid                  = projectGuid,
-                Configuration         = project.ConfigurationManager.ActiveConfiguration.ConfigurationName,
+                ConfigurationName     = project.ConfigurationManager.ActiveConfiguration.ConfigurationName,
+                PlatformName          = project.ConfigurationManager.ActiveConfiguration.PlatformName,
                 ActiveDebugProfile    = activeDebugProfile,
                 IsNetCore             = isNetCore,
-                Framework             = targetFramework,
+                TargetFramework       = targetFramework,
                 SdkVersion            = new Version( netVersion.Major, netVersion.Minor),
-                OutputFolder          = Path.Combine(projectFolder, project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString()),
-                OutputFileName        = (string)project.Properties.Item("OutputFileName").Value,
                 IsExecutable          = outputType == 1,     // 1=EXE
-                Runtime               = runtime,
+                RuntimeIdentifier     = runtimeIdentifier,
                 AssemblyName          = project.Properties.Item("AssemblyName").Value.ToString(),
                 DebugEnabled          = debugEnabled,
                 DebugConnectionName   = debugConnectionName,
@@ -442,6 +444,11 @@ namespace RaspberryDebugger.Models.VisualStudio
         public string FullPath { get; private set; }
 
         /// <summary>
+        /// Returns the relative path to the output directory. <see cref="FullPath"/>.
+        /// </summary>
+        public string OutputPath { get; private set; }
+
+        /// <summary>
         /// Returns the project's GUID.
         /// </summary>
         private Guid Guid { get; set; }
@@ -466,17 +473,17 @@ namespace RaspberryDebugger.Models.VisualStudio
         /// <summary>
         /// Returns the project's build configuration.
         /// </summary>
-        public string Configuration { get; private set; }
+        public string ConfigurationName { get; private set; }
 
+        /// <summary>
+        /// Returns the project's build platform.
+        /// </summary>
+        public string PlatformName { get; private set; }
+        
         /// <summary>
         /// Returns the Selected Debug profile. 
         /// </summary>
         public string ActiveDebugProfile { get; private set; }
-
-        /// <summary>
-        /// Returns the fully qualified path to the project's output directory.
-        /// </summary>
-        public string OutputFolder { get; private set; }
 
         /// <summary>
         /// Indicates that the program is an executable as opposed to something
@@ -485,19 +492,24 @@ namespace RaspberryDebugger.Models.VisualStudio
         public bool IsExecutable { get; private set; }
 
         /// <summary>
-        /// Returns the publish runtime.
+        /// Returns the derived Runtime Identifier.
         /// </summary>
-        public string Runtime { get; set; }
+        public string RuntimeIdentifier { get; set; }
 
         /// <summary>
         /// Returns the framework version.
         /// </summary>
-        public DotNetFrameworks? Framework { get; set; } = null;
+        public DotNetFrameworks? TargetFramework { get; set; } = null;
 
         /// <summary>
         /// Returns the publication folder.
         /// </summary>
-        public string PublishFolder => Path.Combine(OutputFolder, Runtime);
+        public string PublishFolder => Path.Combine(this.FullPath, this.OutputPath, this.RuntimeIdentifier);
+
+        /// <summary>
+        /// Returns the publication folder.
+        /// </summary>
+        public string OutputFolder => Path.Combine(this.FullPath, this.OutputPath);
 
         /// <summary>
         /// Returns the name of the output assembly.

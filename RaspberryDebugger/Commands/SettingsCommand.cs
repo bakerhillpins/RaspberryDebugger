@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // FILE:	    SettingsCommand.cs
 // CONTRIBUTOR: Jeff Lill
 // COPYRIGHT:   Copyright (c) 2021 by neonFORGE, LLC.  All rights reserved.
@@ -69,7 +69,7 @@ namespace RaspberryDebugger.Commands
                 {
                     var command = (OleMenuCommand)s;
                         
-                    command.Visible = PackageHelper.IsActiveProjectRaspberryCompatible(dte);
+                    command.Visible = PackageHelper.IsActiveProjectRaspberryExecutable(dte);
                 };
              
             commandService?.AddCommand(menuItem);

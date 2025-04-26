@@ -275,7 +275,7 @@ namespace RaspberryDebugger
         /// <returns>
         /// <c>true</c> if there's an active project and it satisfies the criterion.
         /// </returns>
-        public static bool IsActiveProjectRaspberryCompatible(DTE2 dte)
+        public static bool IsActiveProjectRaspberryExecutable(DTE2 dte)
         {
             Covenant.Requires<ArgumentNullException>(dte != null, nameof(dte));
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -289,7 +289,9 @@ namespace RaspberryDebugger
 
             var projectProperties = ProjectProperties.CopyFrom(dte?.Solution, activeProject);
 
-            return projectProperties.IsRaspberryCompatible;
+            return projectProperties.IsNetCore &&
+                   projectProperties.IsExecutable &&
+                   projectProperties.IsSupportedSdkVersion;
         }
 
         /// <summary>

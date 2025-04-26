@@ -14,11 +14,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using Neon.Net;
 using Newtonsoft.Json;
+using RaspberryDebugger.Models.Sdk;
 using RaspberryDebugger.OptionsPages;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RaspberryDebugger.Models.Connection
 {
@@ -31,6 +32,7 @@ namespace RaspberryDebugger.Models.Connection
         private string      host;
         private string      user = "pi";
         private string      cachedName;
+        private SdkArchitecture architecture = SdkArchitecture.Arm32;
 
         /// <summary>
         /// Returns the value to be used for sorting the connection.
@@ -92,6 +94,24 @@ namespace RaspberryDebugger.Models.Connection
         /// </summary>
         [JsonProperty(PropertyName = "Port", Required = Required.Always)]
         public int Port { get; set; } = NetworkPorts.SSH;
+
+        /// <summary>
+        /// Provides an architecture setting for this device so that build settings can be
+        /// pared correctly.
+        /// </summary>
+        [JsonProperty(PropertyName = "Architecture", Required = Required.Default)]
+        public SdkArchitecture Architecture
+        {
+            get => architecture;
+
+            set
+            {
+                if (architecture == value) return;
+
+                architecture = value;
+                ConnectionsPanel?.ConnectionIsDefaultChanged(this);
+            }
+        }
 
         /// <summary>
         /// The user name.
