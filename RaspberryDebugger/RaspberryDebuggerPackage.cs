@@ -36,6 +36,8 @@ namespace RaspberryDebugger
     /// <summary>
     /// Implements a VSIX package that automates debugging C# .NET Core applications remotely
     /// on Raspberry Pi OS.
+    ///
+    /// C:\Program Files\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Common\Inc
     /// </summary>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]

@@ -49,7 +49,7 @@ namespace RaspberryDebugger
         /// <summary>
         /// Track the last output file that was uploaded. 
         /// </summary>
-        private static DirectoryInfo LastUploadedDirInfo { get; set; }
+        private static DirectoryInfo LastUploadedPublishDirInfo { get; set; }
 
         /// <summary>
         /// Ensures that the native Windows OpenSSH client is installed, prompting
@@ -302,7 +302,7 @@ namespace RaspberryDebugger
             }
 
             // Build the project to ensure that there are no compile-time errors.
-            Log.Info($"Build Started: {projectProperties?.FullPath}, Configuration: {projectProperties.Configuration}");
+            Log.Info($"Build Started: {project.FullName}, Configuration: {projectProperties.ConfigurationName}, Platform: {projectProperties.PlatformName}");
 
             solution?.SolutionBuild.BuildProject(
                 solution.SolutionBuild.ActiveConfiguration.Name, project?.UniqueName, WaitForBuildToFinish: true);
@@ -338,7 +338,7 @@ namespace RaspberryDebugger
             // these can cause conflicts when we invoke [dotnet] below to
             // publish the project.
 
-            Log.Info($"Publishing Started: {projectProperties?.FullPath}, Runtime: {projectProperties.Runtime}");
+            Log.Info($"Publishing Started: {project?.FullName}, RuntimeIdentifier: {projectProperties.RuntimeIdentifier}");
 
             const string allowedVariableNames =
                 """
@@ -413,24 +413,24 @@ namespace RaspberryDebugger
                 var options = new List<object>()
                 {
                     "publish",
-                    "--configuration", projectProperties.Configuration
+                    "--configuration", projectProperties.ConfigurationName
                 };
 
-                if ( (bool)( projectProperties?.Framework.HasValue ) )
+                if ( (bool)( projectProperties?.TargetFramework.HasValue ) )
                 {
                     options.AddRange(
                         [
-                            "--framework", projectProperties.Framework == DotNetFrameworks.DotNet_8
+                            "--framework", projectProperties.TargetFramework == DotNetFrameworks.DotNet_8
                                 ? "net8.0"
                                 : "net9.0", // short term hack
                         ]);
                 }
 
                 options.AddRange( [
-                    "--runtime", projectProperties.Runtime,
+                    "--runtime", projectProperties.RuntimeIdentifier,
                     "--no-self-contained",
                     "--output", projectProperties.PublishFolder,
-                    projectProperties.FullPath
+                    project?.FullName
                 ] );
 
                 Log.Info("dotnet Command:");
@@ -616,23 +616,22 @@ namespace RaspberryDebugger
                 return null;
             }
 
-            var dirInfo = new DirectoryInfo(projectProperties.OutputFolder);
+            // look at the Build output and see if it's changed.
+            var dirInfo = new DirectoryInfo(projectProperties.PublishFolder);
 
             bool shouldUploadProgram =
-                LastUploadedDirInfo == null ||
-                LastUploadedDirInfo.FullName != dirInfo.FullName ||
-                LastUploadedDirInfo.LastWriteTime != dirInfo.LastWriteTime;
-
-            var outputFileName = Path.Combine( projectProperties.OutputFolder, projectProperties.OutputFileName );
-            
+                LastUploadedPublishDirInfo == null ||
+                LastUploadedPublishDirInfo.FullName != dirInfo.FullName ||
+                LastUploadedPublishDirInfo.LastWriteTime != dirInfo.LastWriteTime;
+           
             if (!shouldUploadProgram)
             {
-                Log.Info($"Skipping upload of {outputFileName}, {dirInfo.LastWriteTime}");
+                Log.Info($"Skipping upload of {projectProperties.PublishFolder}, {dirInfo.LastWriteTime}");
 
                 return connection;
             }
 
-            Log.Info($"Uploading {outputFileName}, {dirInfo.LastWriteTime}");
+            Log.Info($"Uploading {projectProperties.PublishFolder}, {dirInfo.LastWriteTime}");
 
             // Upload the program binaries.
             if (await connection.UploadProgramAsync(
@@ -640,7 +639,7 @@ namespace RaspberryDebugger
                     projectProperties?.AssemblyName,
                     projectProperties?.PublishFolder))
             {
-                LastUploadedDirInfo = dirInfo;
+                LastUploadedPublishDirInfo = dirInfo;
 
                 return connection;
             }
