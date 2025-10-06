@@ -585,15 +585,29 @@ namespace RaspberryDebugger.Connection
                 async () =>
                 {
                     var downloadScript =
-                        $"""
+                        """
                          # Ensure that the packages required by .NET Core are installed:
                          # https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian#dependencies
                          if ! apt-get update ; then
                              exit 1
                          fi
- 
-                         if ! apt-get install -yq libc6 libgcc1 libgssapi-krb5-2 libicu-dev libssl1.1 libstdc++6 zlib1g libgdiplus ; then
-                             exit 1
+                         
+                         debianVersion=$(cat /etc/debian_version)
+                         compareArray=($debianVersion "12")
+                         IFS=$'\n' sorted=($(sort -n <<<"${compareArray[*]}"))
+                         unset IFS
+                         
+                         if [ "${sorted[0]}" == "12" ]; then
+                             # Debian 12 or newer
+                             if ! apt-get install -yq libc6 libgcc-s1 libgssapi-krb5-2 libicu-dev libssl3 libstdc++6 zlib1g libgdiplus ; then
+                                 exit 1
+                             fi
+                             exit 0
+                         else
+                            # Older than Debian 12
+                            if ! apt-get install -yq libc6 libgcc1 libgssapi-krb5-2 libicu-dev libssl1.1 libstdc++6 zlib1g libgdiplus ; then
+                                exit 1
+                            fi
                          fi
  
                          exit 0
