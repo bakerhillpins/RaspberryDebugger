@@ -1,5 +1,6 @@
-﻿using System.Linq;
+﻿using Org.BouncyCastle.Ocsp;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RaspberryDebugger.Models.Raspberry
 {
@@ -15,7 +16,9 @@ namespace RaspberryDebugger.Models.Raspberry
             {
                 "Raspberry Pi 3 Model",
                 "Raspberry Pi 4 Model",
+                "Raspberry Pi 5 Model",
                 "Raspberry Pi Compute Module 4",
+                "Raspberry Pi Compute Module 5",
                 "Raspberry Pi Zero 2"
             };
         }
