@@ -591,11 +591,22 @@ namespace RaspberryDebugger.Connection
                          if ! apt-get update ; then
                              exit 1
                          fi
- 
-                         if ! apt-get install -yq libc6 libgcc1 libgssapi-krb5-2 libicu-dev libssl1.1 libstdc++6 zlib1g libgdiplus ; then
-                             exit 1
+                         
+                         debianVersion=$(cat /etc/debian_version)
+                         versionTwelve='12'
+                         if dpkg --compare-versions $debianVersion gt $versionTwelve 
+                         then
+                             # Debian 12 or newer
+                             if ! apt-get install -yq libc6 libgcc-s1 libgssapi-krb5-2 libicu-dev libssl3 libstdc++6 zlib1g libgdiplus ; then
+                                 exit 1
+                             fi
+                         else
+                            # Older than Debian 12
+                            if ! apt-get install -yq libc6 libgcc1 libgssapi-krb5-2 libicu-dev libssl1.1 libstdc++6 zlib1g libgdiplus ; then
+                                exit 1
+                            fi
                          fi
- 
+                         
                          exit 0
                          """;
 
