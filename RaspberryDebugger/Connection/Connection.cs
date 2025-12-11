@@ -591,11 +591,22 @@ namespace RaspberryDebugger.Connection
                          if ! apt-get update ; then
                              exit 1
                          fi
- 
-                         if ! apt-get install -yq libc6 libgcc1 libgssapi-krb5-2 libicu-dev libssl1.1 libstdc++6 zlib1g libgdiplus ; then
-                             exit 1
+                         
+                         debianVersion=$(cat /etc/debian_version)
+                         versionTwelve='12'
+                         if dpkg --compare-versions $debianVersion gt $versionTwelve 
+                         then
+                             # Debian 12 or newer
+                             if ! apt-get install -yq libc6 libgcc-s1 libgssapi-krb5-2 libicu-dev libssl3 libstdc++6 zlib1g libgdiplus ; then
+                                 exit 1
+                             fi
+                         else
+                            # Older than Debian 12
+                            if ! apt-get install -yq libc6 libgcc1 libgssapi-krb5-2 libicu-dev libssl1.1 libstdc++6 zlib1g libgdiplus ; then
+                                exit 1
+                            fi
                          fi
- 
+                         
                          exit 0
                          """;
 
@@ -708,10 +719,16 @@ namespace RaspberryDebugger.Connection
                     // see: https://developercommunity.visualstudio.com/t/VS2022-remote-debugging-over-SSH-does-no/10394545#T-N10410651
                     // This structure is used when Debug->Attach to Process is used. Unfortunately it's tied to
                     // the VS version.
-                    // Currently the VSIX is only targeted to VS2022 so keep the version selector fixed.
-                    // TODO: Use RaspberryDebuggerPackage.VisualStudioVersion for DIR.
+                    // The getvsdbgsh docs suggest that one should use the VS Version to select the proper debugger. I tried
+                    // that as VS2026 has been released. Unfortunately, getvsdbgsh returns an error using "vs2026" as a -v option.
+                    // At least it does at this time anyway. In the process of trying to reverse engineer the valid options for
+                    // -v I noticed that for any version I submitted - vs2019/vs2022/vs2017/latest, the script always attempted
+                    // to download the latest revision of vsdbg. So I'm just going to use latest until that decides to stop working.
+                    // It's going to be installed in the dir associated with the VS version though, keeping the paradigm suggested
+                    // above.
                     var installCommand =
-                        $"""curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v vs2022 -l {PackageHelper.RemoteDebuggerFolder}""";
+                        //$"""curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v {PackageHelper.VisualStudioVersion} -l {PackageHelper.RemoteDebuggerFolder}""";
+                        $"""curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l {PackageHelper.RemoteDebuggerFolder}""";
 
                     try
                     {

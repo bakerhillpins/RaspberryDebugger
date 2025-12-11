@@ -46,6 +46,16 @@ using VersionsService = RaspberryDebugger.Web;
 
 namespace RaspberryDebugger
 {
+    enum VisualStudioVersions
+    {
+        Unknown,
+
+        vs2017 = 15,
+        vs2019,
+        vs2022,
+        vs2026
+    }
+
     /// <summary>
     /// Package specific constants.
     /// </summary>
@@ -62,6 +72,30 @@ namespace RaspberryDebugger
         private static readonly string ConnectionsPath;
 
         /// <summary>
+        /// Indicates what VS application is currently running. 
+        /// </summary>
+        private static VisualStudioVersions _visualStudioVersion = VisualStudioVersions.Unknown;
+        public static VisualStudioVersions VisualStudioVersion
+        {
+            get
+            {
+                if ( _visualStudioVersion == VisualStudioVersions.Unknown )
+                {
+                    ThreadHelper.ThrowIfNotOnUIThread();
+
+                    DTE2 dte = (DTE2)Package.GetGlobalService(typeof(SDTE));
+
+                    if (Version.TryParse(dte.Version, out Version result))
+                    {
+                        Enum.TryParse(result.Major.ToString(), out _visualStudioVersion);
+                    }
+                }
+
+                return _visualStudioVersion;
+            }
+        }
+
+        /// <summary>
         /// Directory on the Raspberry Pi where .NET Core SDKs will be installed along with the
         /// <b>vsdbg</b> remote debugger.
         /// </summary>
@@ -74,15 +108,13 @@ namespace RaspberryDebugger
 
         /// <summary>
         /// Directory on the Raspberry Pi where the <b>vsdbg</b> remote debugger will be installed.
-        /// Currently the VSIX is only targeted to VS2022 so keep the version selector fixed.
-        /// TODO: Use RaspberryDebuggerPackage.VisualStudioVersion for DIR..
         /// </summary>
-        public const string RemoteDebuggerFolder = "~/.vs-debugger/vs2022";
+        public static readonly string RemoteDebuggerFolder = $"~/.vs-debugger/{VisualStudioVersion}";
 
         /// <summary>
         /// Path to the <b>vsdbg</b> program on the remote machine.
         /// </summary>
-        public const string RemoteDebuggerPath = RemoteDebuggerFolder + "/vsdbg";
+        public static string RemoteDebuggerPath = RemoteDebuggerFolder + "/vsdbg";
 
         /// <summary>
         /// Returns the root directory on the Raspberry Pi where the folder where 
