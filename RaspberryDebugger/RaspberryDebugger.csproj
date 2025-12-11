@@ -46,6 +46,7 @@
     <WarningLevel>4</WarningLevel>
     <NoWarn>CS0414</NoWarn>
     <LangVersion>latest</LangVersion>
+    <DeployExtension>True</DeployExtension>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
