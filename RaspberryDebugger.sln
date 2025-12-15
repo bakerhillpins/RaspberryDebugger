@@ -51,6 +51,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neon.Cryptography", "..\neo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neon.SSH", "..\neonSDK\Lib\Neon.SSH\Neon.SSH.csproj", "{030C5DD8-990D-0DD3-2886-02CB01C171CB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci-cd.yml = .github\workflows\ci-cd.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +89,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{642CFDE5-32E6-46EB-B79E-8E380CCE0237} = {5A14B2C0-0606-433A-AE9C-9E33C7B2BA27}
 		{C7EA532F-BE47-4993-9599-66168340E980} = {21D869D2-B357-485A-89C0-6A18B8886432}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {177F60A0-B1B9-45D1-9CB1-8F06A6ED2AB5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {52E13CDA-74D0-400C-83D8-417CC3C113D6}
