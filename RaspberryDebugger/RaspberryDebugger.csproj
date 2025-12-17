@@ -146,14 +146,14 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.13.40008" ExcludeAssets="runtime">
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.25" Condition="!Exists('packages.config')">
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39" Condition="!Exists('packages.config')">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115" Condition="!Exists('packages.config')">
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.9.50" Condition="!Exists('packages.config')">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!--<PackageReference Include="Neon.Common">
@@ -166,19 +166,19 @@
       <Version>4.0.12</Version>
     </PackageReference>-->
     <PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.3</Version>
+      <Version>13.0.4</Version>
     </PackageReference>
     <PackageReference Include="ObjectListView.Official">
       <Version>2.9.1</Version>
     </PackageReference>
     <PackageReference Include="Polly">
-      <Version>8.5.2</Version>
+      <Version>8.6.5</Version>
     </PackageReference>
     <PackageReference Include="StreamJsonRpc">
-      <Version>2.21.10</Version>
+      <Version>2.22.23</Version>
     </PackageReference>
     <PackageReference Include="SSH.NET">
-      <Version>2024.2.0</Version>
+      <Version>2025.1.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

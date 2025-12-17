@@ -60,7 +60,7 @@ jobs:
       with:
         repository: bakerhillpins/neonSDK
         path: './neonSDK'
-        ref: refs/heads/Fix_Issue#94
+        ref: refs/heads/Development
         
     # Install the .NET Core workload
     - name: 🤖 Install .NET Core
