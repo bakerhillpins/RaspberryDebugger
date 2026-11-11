@@ -420,9 +420,7 @@ namespace RaspberryDebugger
                 {
                     options.AddRange(
                         [
-                            "--framework", projectProperties.TargetFramework == DotNetFrameworks.DotNet_8
-                                ? "net8.0"
-                                : "net9.0", // short term hack
+                            "--framework", projectProperties.TargetFramework.ToMemberString(), // short term hack
                         ]);
                 }
 
