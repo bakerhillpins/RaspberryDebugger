@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 
 namespace RaspberryDebugger.Models.VisualStudio
@@ -35,8 +36,12 @@ namespace RaspberryDebugger.Models.VisualStudio
     /// </summary>
     enum DotNetFrameworks
     {
-        DotNet_8  = 524288,
+        [EnumMember(Value = "net8.0")]
+        DotNet_8  = 5242808,
+        [EnumMember(Value = "net9.0")]
         DotNet_9 = 589824,
+        [EnumMember(Value = "net10.0")]
+        DotNet_10 = 655360
     }
 
     /// <summary>
